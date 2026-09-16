@@ -205,6 +205,10 @@
   .fc-tag{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px;font-family:'IBM Plex Mono';}
   .fc-tag.off{color:var(--muted);background:var(--surface2);}
 
+  .preco-final-wrap{display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;width:100%;}
+  .insumo-toggle{display:none;width:26px;height:26px;flex-shrink:0;}
+  .insumo-toggle svg{width:16px;height:16px;transition:transform .15s;}
+
   .ficha-head{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:20px;}
   .ficha-head .field{flex:1;min-width:220px;}
   .ficha-head .field.pv{max-width:220px;}
@@ -356,6 +360,13 @@
     table.responsive td .cell-input{text-align:right;}
     table.responsive td.cell-title::before{display:none;}
     table.responsive td.cell-title{justify-content:flex-start;}
+
+    table.responsive tr.insumo-row{cursor:pointer;display:flex;flex-direction:column;}
+    table.responsive tr.insumo-row td.resumo-cell{order:1;}
+    table.responsive tr.insumo-row td.detail-cell{order:2;display:none;}
+    table.responsive tr.insumo-row.expanded td.detail-cell{display:flex;}
+    table.responsive tr.insumo-row .insumo-toggle{display:inline-flex;}
+    table.responsive tr.insumo-row.expanded .insumo-toggle svg{transform:rotate(180deg);}
   }
 
   @media (max-width:520px){
@@ -878,14 +889,20 @@
         : (ins.fc && ins.fc!==1 ? '<span class="fc-tag">'+numStr(ins.fc,4)+'×</span>' : '<span class="fc-tag off">—</span>');
       var precoCell = origem ? '<span class="mono">'+brl(pf)+'</span>' : '<input class="cell-input num mono insumo-preco" data-id="'+ins.id+'" type="number" step="0.01" min="0" value="'+ins.preco+'">';
       return (
-        '<tr data-id="'+ins.id+'">'+
+        '<tr class="insumo-row" data-id="'+ins.id+'">'+
           '<td data-label="Insumo" class="cell-title"><div class="row-name">'+esc(ins.nome)+'</div></td>'+
           '<td data-label="Unidade">'+esc(ins.unidade)+'</td>'+
-          '<td data-label="Preço" class="num">'+precoCell+'</td>'+
-          '<td data-label="Fator de correção">'+fcHtml+'</td>'+
-          '<td data-label="Preço final" class="num mono">'+brl(pf)+'</td>'+
-          '<td data-label="Atualizado"><span class="row-sub">'+esc(ins.atualizado)+'</span></td>'+
-          '<td data-label="" style="text-align:right;white-space:nowrap;">'+
+          '<td data-label="Preço" class="num detail-cell">'+precoCell+'</td>'+
+          '<td data-label="Fator de correção" class="detail-cell">'+fcHtml+'</td>'+
+          '<td data-label="Preço final" class="num mono resumo-cell">'+
+            '<span class="preco-final-wrap"><span>'+brl(pf)+'</span>'+
+              '<button type="button" class="icon-btn insumo-toggle" aria-label="Ver mais detalhes">'+
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'+
+              '</button>'+
+            '</span>'+
+          '</td>'+
+          '<td data-label="Atualizado" class="detail-cell"><span class="row-sub">'+esc(ins.atualizado)+'</span></td>'+
+          '<td data-label="" class="detail-cell" style="text-align:right;white-space:nowrap;">'+
             '<button class="icon-btn edit-insumo" data-id="'+ins.id+'" aria-label="Editar" title="'+(origem?'Editar na ficha técnica de origem':'Editar')+'">'+
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>'+
             '</button>'+
@@ -895,6 +912,12 @@
       );
     }).join('') || '<tr><td colspan="7"><div class="empty">'+(q?'Nenhum insumo encontrado para "'+esc(filters.insumos)+'".':'Nenhum insumo cadastrado ainda.')+'</div></td></tr>';
 
+    listBody.querySelectorAll('tr.insumo-row').forEach(function(tr){
+      tr.addEventListener('click', function(e){
+        if(e.target.closest('input, .edit-insumo, .del-insumo')) return;
+        tr.classList.toggle('expanded');
+      });
+    });
     listBody.querySelectorAll('.insumo-preco').forEach(function(inp){
       inp.addEventListener('change', function(){
         var ins = findInsumo(inp.dataset.id);
