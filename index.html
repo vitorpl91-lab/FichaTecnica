@@ -209,6 +209,10 @@
   .insumo-toggle{display:none;width:26px;height:26px;flex-shrink:0;}
   .insumo-toggle svg{width:16px;height:16px;transition:transform .15s;}
 
+  tr.insumo-row.alerta-amber{background:var(--amber-soft);}
+  tr.insumo-row.alerta-red{background:var(--red-soft);}
+  tr.insumo-row.alerta-amber td, tr.insumo-row.alerta-red td{border-bottom-color:var(--border);}
+
   .ficha-head{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:20px;}
   .ficha-head .field{flex:1;min-width:220px;}
   .ficha-head .field.pv{max-width:220px;}
@@ -636,6 +640,17 @@
       <p class="hint">Esses dois parâmetros são globais — valem para todas as fichas técnicas, e recalculam tudo na hora.</p>
       <div class="field"><label for="cfgFixo">Custo fixo (% sobre o preço de venda)</label><input type="number" id="cfgFixo" step="0.5" min="0"></div>
       <div class="field"><label for="cfgVar">Despesa variável (% sobre o preço de venda)</label><input type="number" id="cfgVar" step="0.5" min="0"></div>
+      <div class="card" style="background:var(--surface2);border-style:dashed;">
+        <div class="card-pad" style="padding:14px 16px;">
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Destacar insumos desatualizados</div>
+              <div class="toggle-hint">Preço sem revisar há mais de 30 dias fica amarelo; mais de 60 dias fica vermelho.</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgAlerta"><span class="track"></span><span class="thumb"></span></label>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="sheet-footer"><button class="btn" data-close="scrimConfig">Cancelar</button><button class="btn btn-primary" id="saveConfigBtn">Salvar configurações</button></div>
   </div>
@@ -649,7 +664,7 @@
   // Cole aqui a URL do seu Web App (termina em /exec) depois de publicar o Code.gs.
   var API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyJJz5HH_IMdKgpr0HbUiNYkR3VxBUVZikeQzg46zCkbPqg2d6zhgRMT_RTzEnCziHO/exec';
 
-  var CONFIG = { custoFixoPercent: 15, despesaVariavelPercent: 8 };
+  var CONFIG = { custoFixoPercent: 15, despesaVariavelPercent: 8, alertaAtualizacao: false };
   var insumos = [];
   var fichas = [];
 
@@ -667,6 +682,22 @@
   function findInsumoByNome(nome){
     var n = normalizeText(nome);
     return insumos.find(function(i){ return normalizeText(i.nome)===n; });
+  }
+
+  function parseDataBR(s){
+    if(!s) return null;
+    var partes = String(s).split('/');
+    if(partes.length!==3) return null;
+    var d = parseInt(partes[0],10), m = parseInt(partes[1],10)-1, y = parseInt(partes[2],10);
+    var dt = new Date(y,m,d);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  function diasDesde(dataStr){
+    var dt = parseDataBR(dataStr);
+    if(!dt) return null;
+    var hoje = new Date(); hoje.setHours(0,0,0,0);
+    dt.setHours(0,0,0,0);
+    return Math.floor((hoje-dt)/86400000);
   }
 
   function precoFinalInsumo(ins, _visited){
@@ -781,6 +812,7 @@
         if(data.configuracoes){
           CONFIG.custoFixoPercent = data.configuracoes.custoFixoPercent!=null ? data.configuracoes.custoFixoPercent : 15;
           CONFIG.despesaVariavelPercent = data.configuracoes.despesaVariavelPercent!=null ? data.configuracoes.despesaVariavelPercent : 8;
+          CONFIG.alertaAtualizacao = !!data.configuracoes.alertaAtualizacao;
         }
         renderInsumosDatalist();
         byId('loadingOverlay').style.display = 'none';
@@ -888,8 +920,14 @@
         ? '<span class="badge badge-neutral" title="Preço sempre igual ao custo desta receita">🔗 '+esc(origem.nome)+'</span>'
         : (ins.fc && ins.fc!==1 ? '<span class="fc-tag">'+numStr(ins.fc,4)+'×</span>' : '<span class="fc-tag off">—</span>');
       var precoCell = origem ? '<span class="mono">'+brl(pf)+'</span>' : '<input class="cell-input num mono insumo-preco" data-id="'+ins.id+'" type="number" step="0.01" min="0" value="'+ins.preco+'">';
+      var alertaClass = '';
+      if(CONFIG.alertaAtualizacao && !origem){
+        var dias = diasDesde(ins.atualizado);
+        if(dias!=null && dias>60) alertaClass = ' alerta-red';
+        else if(dias!=null && dias>30) alertaClass = ' alerta-amber';
+      }
       return (
-        '<tr class="insumo-row" data-id="'+ins.id+'">'+
+        '<tr class="insumo-row'+alertaClass+'" data-id="'+ins.id+'">'+
           '<td data-label="Insumo" class="cell-title">'+
             '<div class="insumo-nome-row"><div class="row-name">'+esc(ins.nome)+'</div>'+
               '<button type="button" class="icon-btn insumo-toggle" aria-label="Ver mais detalhes">'+
@@ -1529,6 +1567,7 @@
   function openConfigSheet(){
     byId('cfgFixo').value = CONFIG.custoFixoPercent;
     byId('cfgVar').value = CONFIG.despesaVariavelPercent;
+    byId('cfgAlerta').checked = !!CONFIG.alertaAtualizacao;
     openSheet('scrimConfig');
   }
   byId('saveConfigBtn').addEventListener('click', function(){
@@ -1536,7 +1575,9 @@
     var vari = parseFloat(byId('cfgVar').value);
     if(!isNaN(fixo) && fixo>=0) CONFIG.custoFixoPercent = fixo;
     if(!isNaN(vari) && vari>=0) CONFIG.despesaVariavelPercent = vari;
+    CONFIG.alertaAtualizacao = byId('cfgAlerta').checked;
     closeSheet('scrimConfig');
+    if(state.view==='insumos') renderInsumos();
     if(state.view==='fichaDetail') refreshFichaCalculations(state.fichaId);
     if(state.view==='fichas') renderFichasList();
     if(state.view==='produtos') renderProdutos();
