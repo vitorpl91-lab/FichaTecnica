@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ficha Técnica Home Burger</title>
+<title>Ficha Técnica Pandeló +Sabor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
@@ -205,7 +205,7 @@
   .fc-tag{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px;font-family:'IBM Plex Mono';}
   .fc-tag.off{color:var(--muted);background:var(--surface2);}
 
-  .preco-final-wrap{display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;width:100%;}
+  .insumo-nome-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
   .insumo-toggle{display:none;width:26px;height:26px;flex-shrink:0;}
   .insumo-toggle svg{width:16px;height:16px;transition:transform .15s;}
 
@@ -387,9 +387,9 @@
   <div class="sidebar-scrim" id="sidebarScrim"></div>
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <span class="brand-mark">🍔</span>
+      <span class="brand-mark">🍪</span>
       <div class="brand-text">
-        <h1>Home Burger</h1>
+        <h1>Pandeló +Sabor</h1>
         <p>Ficha Técnica</p>
       </div>
     </div>
@@ -890,17 +890,17 @@
       var precoCell = origem ? '<span class="mono">'+brl(pf)+'</span>' : '<input class="cell-input num mono insumo-preco" data-id="'+ins.id+'" type="number" step="0.01" min="0" value="'+ins.preco+'">';
       return (
         '<tr class="insumo-row" data-id="'+ins.id+'">'+
-          '<td data-label="Insumo" class="cell-title"><div class="row-name">'+esc(ins.nome)+'</div></td>'+
-          '<td data-label="Unidade">'+esc(ins.unidade)+'</td>'+
-          '<td data-label="Preço" class="num detail-cell">'+precoCell+'</td>'+
-          '<td data-label="Fator de correção" class="detail-cell">'+fcHtml+'</td>'+
-          '<td data-label="Preço final" class="num mono resumo-cell">'+
-            '<span class="preco-final-wrap"><span>'+brl(pf)+'</span>'+
+          '<td data-label="Insumo" class="cell-title">'+
+            '<div class="insumo-nome-row"><div class="row-name">'+esc(ins.nome)+'</div>'+
               '<button type="button" class="icon-btn insumo-toggle" aria-label="Ver mais detalhes">'+
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'+
               '</button>'+
-            '</span>'+
+            '</div>'+
           '</td>'+
+          '<td data-label="Unidade">'+esc(ins.unidade)+'</td>'+
+          '<td data-label="Preço" class="num detail-cell">'+precoCell+'</td>'+
+          '<td data-label="Fator de correção" class="detail-cell">'+fcHtml+'</td>'+
+          '<td data-label="Preço final" class="num mono resumo-cell">'+brl(pf)+'</td>'+
           '<td data-label="Atualizado" class="detail-cell"><span class="row-sub">'+esc(ins.atualizado)+'</span></td>'+
           '<td data-label="" class="detail-cell" style="text-align:right;white-space:nowrap;">'+
             '<button class="icon-btn edit-insumo" data-id="'+ins.id+'" aria-label="Editar" title="'+(origem?'Editar na ficha técnica de origem':'Editar')+'">'+
