@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ficha Técnica Home Burger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF0F3;
+    --surface:#FFFFFF;
+    --surface2:#F5F6F8;
+    --border:#DDE1E6;
+    --text:#1B1F27;
+    --muted:#6B7280;
+    --accent:#F97316;
+    --accent-soft:#FFF1E7;
+    --green:#16A34A;
+    --green-soft:#E9F7EE;
+    --red:#DC2626;
+    --red-soft:#FDECEC;
+    --amber:#D97706;
+    --amber-soft:#FEF3E0;
+    --chart-cmv:#8B95A3;
+    --chart-fixo:#C7CDD6;
+    --sidebar-w:236px;
+    --sidebar-w-collapsed:76px;
+    --radius:12px;
+    --shadow-sheet:0 -12px 32px rgba(20,22,30,.18);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    margin:0;
+  }
+  h1,h2,h3{margin:0;}
+  button{font-family:inherit;}
+  input,select{font-family:inherit;font-size:14px;color:var(--text);}
+  ::selection{background:var(--accent-soft);color:var(--text);}
+
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  .num{text-align:right;}
+
+  /* ---------- loading overlay ---------- */
+  .loading-overlay{
+    position:fixed;inset:0;background:var(--bg);z-index:200;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  }
+  .loading-overlay .spinner{
+    width:34px;height:34px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);
+    animation:spin .8s linear infinite;
+  }
+  .loading-overlay p{color:var(--muted);font-weight:600;font-size:13px;}
+  .loading-overlay .erro{color:var(--red);max-width:420px;text-align:center;padding:0 20px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- layout shell ---------- */
+  .app{display:flex;min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w);
+    flex-shrink:0;
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0;bottom:0;left:0;
+    z-index:40;
+    transition:width .18s ease, transform .22s ease;
+  }
+  body.sidebar-collapsed .sidebar{width:var(--sidebar-w-collapsed);}
+  body.sidebar-collapsed .sidebar .brand-text,
+  body.sidebar-collapsed .sidebar .nav-label,
+  body.sidebar-collapsed .sidebar .footer-label{display:none;}
+  body.sidebar-collapsed .main{margin-left:var(--sidebar-w-collapsed);}
+
+  .brand{display:flex;align-items:center;gap:10px;padding:20px 18px 16px;}
+  .brand-mark{font-size:24px;line-height:1;flex-shrink:0;}
+  .brand-text h1{font-size:15px;font-weight:800;letter-spacing:-.01em;}
+  .brand-text p{margin:2px 0 0;font-size:11.5px;color:var(--muted);font-weight:500;}
+
+  .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:8px 10px;flex:1;}
+  .nav-item{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 12px;border-radius:9px;border:none;background:none;cursor:pointer;
+    color:var(--muted);font-weight:600;font-size:13.5px;text-align:left;width:100%;
+  }
+  .nav-item svg{flex-shrink:0;width:19px;height:19px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent);}
+  .nav-item.active svg{color:var(--accent);}
+
+  .sidebar-footer{border-top:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:2px;}
+  .footer-btn{
+    display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;border:none;
+    background:none;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;width:100%;text-align:left;
+  }
+  .footer-btn:hover{background:var(--surface2);color:var(--text);}
+  .footer-btn svg{width:18px;height:18px;flex-shrink:0;}
+
+  .sidebar-scrim{display:none;position:fixed;inset:0;background:rgba(20,22,30,.4);z-index:35;}
+
+  .main{
+    flex:1;
+    margin-left:var(--sidebar-w);
+    display:flex;flex-direction:column;
+    min-width:0;
+    transition:margin-left .18s ease;
+  }
+
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:rgba(238,240,243,.88);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:12px;
+    padding:14px 24px;
+  }
+  .icon-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:36px;height:36px;border-radius:9px;border:1px solid transparent;background:none;color:var(--text);cursor:pointer;flex-shrink:0;
+  }
+  .icon-btn:hover{background:var(--surface2);}
+  .icon-btn svg{width:19px;height:19px;}
+  #menuBtn{display:none;}
+  #backBtn{display:none;}
+
+  .topbar-titles{flex:1;min-width:0;}
+  .topbar-titles h2{font-size:17px;font-weight:800;letter-spacing:-.01em;}
+  .topbar-titles p{margin:1px 0 0;font-size:12px;color:var(--muted);font-weight:500;}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;
+    border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);
+    font-weight:600;font-size:13.5px;padding:9px 14px;cursor:pointer;white-space:nowrap;
+  }
+  .btn svg{width:16px;height:16px;}
+  .btn:hover{background:var(--surface2);}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn-primary:hover{background:#EA6A0C;}
+  .btn-ghost{border-color:transparent;background:none;}
+  .btn-ghost:hover{background:var(--surface2);}
+  .btn-sm{padding:6px 10px;font-size:12.5px;}
+  .btn-danger{color:var(--red);border-color:var(--red);background:var(--red-soft);}
+
+  main.content{padding:20px 24px 80px;max-width:1180px;width:100%;margin:0 auto;}
+  .view[hidden]{display:none;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+  .card-pad{padding:18px 20px;}
+
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+  .stat-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+  .stat-tile .stat-label{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .stat-tile .stat-value{font-family:'IBM Plex Mono';font-weight:600;font-size:22px;margin-top:6px;font-variant-numeric:tabular-nums;}
+  .stat-tile .stat-value.small{font-size:16px;font-family:'Inter';font-weight:700;}
+
+  .badge{
+    display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;
+    font-family:'IBM Plex Mono';font-variant-numeric:tabular-nums;
+  }
+  .badge-green{background:var(--green-soft);color:var(--green);}
+  .badge-amber{background:var(--amber-soft);color:var(--amber);}
+  .badge-red{background:var(--red-soft);color:var(--red);}
+  .badge-neutral{background:var(--surface2);color:var(--muted);}
+
+  .search-field{position:relative;margin-bottom:14px;max-width:360px;}
+  .search-field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);pointer-events:none;}
+  .search-field input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:9px;background:var(--surface);}
+  .search-field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+
+  .table-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;min-width:560px;}
+  thead th{
+    text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;
+    padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  thead th.num{text-align:right;}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.clickable{cursor:pointer;}
+  tbody tr.clickable:hover{background:var(--surface2);}
+  td.num{text-align:right;}
+  .row-name{font-weight:700;}
+  .row-sub{color:var(--muted);font-size:12px;font-weight:500;margin-top:1px;}
+  .chev{color:var(--muted);width:16px;height:16px;flex-shrink:0;}
+
+  .cell-input{border:1px solid transparent;background:transparent;border-radius:7px;padding:6px 8px;width:100%;}
+  .cell-input:hover{background:var(--surface2);}
+  .cell-input:focus{outline:none;border-color:var(--accent);background:var(--surface);}
+  input.cell-input.num{text-align:right;font-family:'IBM Plex Mono';font-variant-numeric:tabular-nums;}
+
+  .section-title{font-size:15px;font-weight:800;margin-bottom:2px;}
+  .section-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+
+  .empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:13px;}
+
+  .fc-tag{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px;font-family:'IBM Plex Mono';}
+  .fc-tag.off{color:var(--muted);background:var(--surface2);}
+
+  .ficha-head{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:20px;}
+  .ficha-head .field{flex:1;min-width:220px;}
+  .ficha-head .field.pv{max-width:220px;}
+  .field label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
+  .field input, .field select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .field-title-input{font-size:19px;font-weight:800;padding:8px 10px;}
+  .field-pv-input{font-family:'IBM Plex Mono';font-weight:600;text-align:right;}
+
+  .autosave{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--green);font-weight:600;margin-bottom:16px;}
+  .autosave svg{width:14px;height:14px;flex-shrink:0;}
+  .autosave.pending{color:var(--amber);}
+  .autosave.erro{color:var(--red);}
+
+  .tag-interno{background:var(--surface2);color:var(--muted);}
+
+  .rendimento-card{margin-top:22px;}
+  .rendimento-grid{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px;}
+  .rendimento-readout{margin-top:12px;background:var(--surface2);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;font-size:12.5px;font-weight:600;}
+  .publish-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+  .publish-info{font-size:12.5px;color:var(--muted);max-width:440px;}
+  .publish-info strong{color:var(--text);}
+
+  .empty-apuracao{padding:26px 20px;text-align:center;color:var(--muted);font-size:13px;}
+  .empty-apuracao svg{width:26px;height:26px;margin-bottom:8px;opacity:.5;}
+
+  .apuracao{margin-top:22px;display:grid;grid-template-columns:1.3fr 1fr;gap:14px;}
+  .apuracao .card-pad{padding:18px 20px;}
+  .calc-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--border);}
+  .calc-row:last-child{border-bottom:none;}
+  .calc-row .label{font-size:13px;color:var(--muted);font-weight:500;}
+  .calc-row .label small{display:block;font-size:10.5px;margin-top:1px;}
+  .calc-row .value{font-family:'IBM Plex Mono';font-weight:600;font-size:14.5px;font-variant-numeric:tabular-nums;}
+  .calc-row.total .value{font-size:19px;font-weight:700;}
+  .calc-row.total .label{font-weight:700;color:var(--text);}
+  .calc-row.start{padding-bottom:12px;margin-bottom:2px;}
+  .calc-row.start .label{font-size:14px;font-weight:700;color:var(--text);}
+  .calc-row.start .value{font-size:19px;font-weight:700;}
+  .calc-row.subtotal{background:var(--surface2);margin:4px -20px;padding:9px 20px;border-bottom:none;border-radius:8px;}
+  .calc-row.subtotal .label{font-weight:700;color:var(--text);}
+  .link-cfg{color:var(--accent);font-weight:600;cursor:pointer;background:none;border:none;font-size:11.5px;padding:0;}
+
+  .sim-current{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:12px;margin-bottom:10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted);}
+  .sim-current strong{font-family:'IBM Plex Mono';font-size:15px;font-variant-numeric:tabular-nums;}
+  .sim-result{margin-top:4px;min-height:20px;}
+  .sim-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--muted);}
+  .sim-row.target{color:var(--text);font-weight:700;font-size:15px;padding-top:8px;border-top:1px dashed var(--border);margin-top:2px;}
+  .sim-row.target .mono{color:var(--accent);}
+  .sim-delta{font-size:11.5px;color:var(--muted);margin-top:4px;text-align:right;}
+
+  .gauge-card{margin-top:22px;}
+  .gauge{display:flex;gap:18px;align-items:stretch;min-height:224px;}
+  .gauge-bar{width:38px;border-radius:19px;overflow:hidden;display:flex;flex-direction:column;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);}
+  .gauge-bar span{width:100%;}
+  .gauge-rows{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .gauge-row{flex:1 1 0;display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);min-height:44px;}
+  .gauge-row:last-child{border-bottom:none;}
+  .gauge-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+  .gauge-text{min-width:0;flex:1;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .gauge-left{min-width:0;}
+  .gauge-pctline{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
+  .gauge-pct{font-family:'IBM Plex Mono';font-weight:700;font-size:16px;}
+  .gauge-label{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
+  .gauge-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .gauge-value{font-family:'IBM Plex Mono';font-weight:700;font-size:14px;white-space:nowrap;flex-shrink:0;}
+
+  .pai-banner{background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:10px 14px;font-size:12.5px;font-weight:600;margin-bottom:16px;}
+  .pai-banner .link-cfg{color:var(--accent);text-decoration:underline;font-size:inherit;}
+
+  .filhos-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .filho-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:12.5px;font-weight:600;}
+  .filho-chip:hover{background:var(--surface2);}
+  .filho-chip .mono{color:var(--muted);font-size:11.5px;}
+
+  tr.inherited-row{background:var(--accent-soft);}
+  tr.inherited-row td{border-bottom-color:var(--border);}
+
+  .scrim{position:fixed;inset:0;background:rgba(20,22,30,.42);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+  .scrim.active{opacity:1;pointer-events:auto;}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:61;
+    background:var(--surface);border-radius:18px 18px 0 0;box-shadow:var(--shadow-sheet);
+    max-height:88vh;overflow-y:auto;padding:10px 22px 20px;
+    transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);
+    max-width:520px;margin:0 auto;
+  }
+  .scrim.active .sheet{transform:translateY(0);}
+  .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:6px auto 14px;}
+  .sheet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .sheet-header h3{font-size:17px;font-weight:800;}
+  .sheet-body{display:flex;flex-direction:column;gap:14px;}
+  .sheet-footer{display:flex;gap:10px;margin-top:20px;}
+  .sheet-footer .btn{flex:1;justify-content:center;}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:2px 0;}
+  .toggle-row .toggle-label{font-size:13.5px;font-weight:600;}
+  .toggle-row .toggle-hint{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:1px;}
+  .switch{position:relative;width:42px;height:24px;flex-shrink:0;}
+  .switch input{opacity:0;width:100%;height:100%;margin:0;position:absolute;cursor:pointer;}
+  .switch .track{position:absolute;inset:0;background:var(--border);border-radius:20px;transition:background .15s;}
+  .switch .thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s;}
+  .switch input:checked + .track{background:var(--accent);}
+  .switch input:checked ~ .thumb{transform:translateX(18px);}
+
+  .segmented{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .segmented button{flex:1;padding:8px;border:none;background:var(--surface);color:var(--muted);font-weight:600;font-size:12.5px;cursor:pointer;}
+  .segmented button.active{background:var(--accent-soft);color:var(--accent);}
+  .segmented button + button{border-left:1px solid var(--border);}
+
+  .fc-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
+  .fc-preview{background:var(--surface2);border:1px dashed var(--border);border-radius:8px;padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--text);font-family:'IBM Plex Mono';}
+  .fc-preview.pending{color:var(--muted);font-family:'Inter';font-weight:500;}
+  .hint{font-size:11.5px;color:var(--muted);}
+
+  .row-flex{display:flex;gap:12px;}
+  .row-flex .field{flex:1;}
+
+  @media (max-width:960px){
+    .sidebar{transform:translateX(-100%);width:260px;}
+    body.drawer-open .sidebar{transform:translateX(0);}
+    body.drawer-open .sidebar-scrim{display:block;}
+    .main{margin-left:0 !important;}
+    body.sidebar-collapsed .main{margin-left:0 !important;}
+    #menuBtn{display:inline-flex;}
+    .sidebar .footer-btn.collapse-btn{display:none;}
+  }
+
+  @media (max-width:720px){
+    main.content{padding:16px 16px 90px;}
+    .stats-row{grid-template-columns:1fr;}
+    .apuracao{grid-template-columns:1fr;}
+    .ficha-head{flex-direction:column;align-items:stretch;}
+    .ficha-head .field.pv{max-width:none;}
+    .rendimento-grid{grid-template-columns:1fr;}
+    .gauge{gap:12px;}
+    .gauge-bar{width:26px;}
+    .search-field{max-width:none;}
+
+    table.responsive{min-width:0;}
+    table.responsive thead{display:none;}
+    table.responsive, table.responsive tbody, table.responsive tr, table.responsive td{display:block;width:100%;}
+    table.responsive tbody{display:flex;flex-direction:column;gap:10px;padding:12px;}
+    table.responsive tr{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--surface);}
+    table.responsive tr.clickable:hover{background:var(--surface);}
+    table.responsive td{border-bottom:none;padding:6px 2px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    table.responsive td.num{text-align:right;}
+    table.responsive td::before{content:attr(data-label);color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;font-family:'Inter';flex-shrink:0;}
+    table.responsive td[data-label=""]::before{display:none;}
+    table.responsive td .cell-input{text-align:right;}
+    table.responsive td.cell-title::before{display:none;}
+    table.responsive td.cell-title{justify-content:flex-start;}
+  }
+
+  @media (max-width:520px){
+    .fc-fields{grid-template-columns:1fr;}
+    .row-flex{flex-direction:column;}
+    .gauge-text{flex-direction:column;align-items:flex-start;gap:2px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p id="loadingText">Carregando dados da planilha…</p>
+</div>
+
+<div class="app">
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-mark">🍔</span>
+      <div class="brand-text">
+        <h1>Home Burger</h1>
+        <p>Ficha Técnica</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item" data-nav="insumos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        <span class="nav-label">Insumos</span>
+      </button>
+      <button class="nav-item" data-nav="fichas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.2"/><path d="M9 3.6h6a1 1 0 011 1v1.2H8V4.6a1 1 0 011-1z"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg>
+        <span class="nav-label">Ficha Técnica</span>
+      </button>
+      <button class="nav-item" data-nav="produtos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="3.4" height="10" rx=".6"/><rect x="10.3" y="4" width="3.4" height="16" rx=".6"/><rect x="16.6" y="13" width="3.4" height="7" rx=".6"/></svg>
+        <span class="nav-label">Produtos</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="footer-btn" id="openConfigBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M8 17h12"/><circle cx="16" cy="7" r="2.1"/><circle cx="6" cy="17" r="2.1"/></svg>
+        <span class="footer-label">Configurações</span>
+      </button>
+      <button class="footer-btn collapse-btn" id="collapseBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-6 7 6 7"/><path d="M8 5v14"/></svg>
+        <span class="footer-label">Recolher menu</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="Abrir menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <button class="icon-btn" id="backBtn" aria-label="Voltar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="topbar-titles">
+        <h2 id="pageTitle">Insumos</h2>
+        <p id="pageSub">0 insumos cadastrados</p>
+      </div>
+      <button class="btn btn-primary" id="topAction">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="topActionLabel">Novo insumo</span>
+      </button>
+    </header>
+
+    <main class="content">
+
+      <section class="view" data-view="insumos">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="searchInsumos" placeholder="Buscar insumo pelo nome...">
+        </div>
+        <div class="table-wrap">
+          <table class="responsive">
+            <thead>
+              <tr>
+                <th>Insumo</th><th>Unidade</th><th class="num">Preço</th><th>Fator de correção</th><th class="num">Preço final</th><th>Atualizado</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="insumosBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view" data-view="fichas" hidden>
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="searchFichas" placeholder="Buscar produto pelo nome...">
+        </div>
+        <div class="table-wrap">
+          <table class="responsive">
+            <thead><tr><th>Produto</th><th class="num">Preço de venda</th><th class="num">CMV</th><th class="num">Lucro</th><th></th></tr></thead>
+            <tbody id="fichasBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view" data-view="fichaDetail" hidden>
+        <div class="autosave" id="autosaveIndicator">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          <span id="autosaveText">Alterações salvas automaticamente na planilha</span>
+        </div>
+
+        <div id="paiInfo" hidden></div>
+
+        <div class="ficha-head">
+          <div class="field">
+            <label for="fichaNome">Nome do produto</label>
+            <input type="text" id="fichaNome" class="field-title-input">
+          </div>
+          <div class="field pv">
+            <label for="fichaPV">Preço de venda</label>
+            <input type="number" id="fichaPV" class="field-pv-input" step="0.10" min="0" placeholder="em branco = insumo interno">
+          </div>
+        </div>
+
+        <h3 class="section-title">Ingredientes</h3>
+        <p class="section-sub">Digite para buscar o insumo, informe a quantidade na unidade de controle dele e, se quiser, anote a medida prática.</p>
+
+        <div class="table-wrap">
+          <table class="responsive" id="ingredientesTable">
+            <thead>
+              <tr>
+                <th style="min-width:190px">Insumo</th><th>Unidade</th><th style="min-width:110px">Quantidade</th>
+                <th style="min-width:160px">Medida prática</th><th class="num">Custo</th><th class="num">% do total</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="ingredientesBody"></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:12px;">
+          <button class="btn" id="addIngredienteBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Adicionar ingrediente
+          </button>
+        </div>
+
+        <div class="card rendimento-card">
+          <div class="card-pad">
+            <h3 class="section-title">Rendimento da receita</h3>
+            <p class="section-sub">Se a receita rende mais de uma unidade (ex: 20 brownies de uma vez), informe aqui — o custo é dividido automaticamente.</p>
+            <div class="rendimento-grid">
+              <div class="field" style="margin:0;"><label for="rendQtd">Quantidade produzida</label><input type="number" id="rendQtd" step="0.01" min="0.01"></div>
+              <div class="field" style="margin:0;">
+                <label for="rendUnidade">Unidade</label>
+                <select id="rendUnidade"><option value="un">un</option><option value="kg">kg</option><option value="g">g</option><option value="l">l</option><option value="ml">ml</option></select>
+              </div>
+              <div class="field" style="margin:0;"><label for="rendNota">Nota (opcional)</label><input type="text" id="rendNota" placeholder="Ex: 50g cada"></div>
+            </div>
+            <div class="rendimento-readout mono" id="rendReadout">Custo total da receita: R$ 0,00 · Custo por un.: R$ 0,00</div>
+
+            <div class="publish-row">
+              <div class="publish-info" id="publishInfo"></div>
+              <button class="btn btn-sm" id="publishBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/><path d="M5 19h14"/></svg>
+                <span id="publishBtnLabel">Publicar como insumo</span>
+              </button>
+            </div>
+
+            <div class="publish-row">
+              <div class="publish-info">Crie um novo produto derivado desta receita (ex: a unidade individual vendável), com o custo herdado automaticamente e atualizado sempre que esta receita mudar.</div>
+              <button class="btn btn-sm" id="publishProdutoBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                Publicar como produto
+              </button>
+            </div>
+            <div id="filhosWrap"></div>
+          </div>
+        </div>
+
+        <div id="apuracaoWrap"></div>
+      </section>
+
+      <section class="view" data-view="produtos" hidden>
+        <div class="stats-row" id="produtosStats"></div>
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="searchProdutos" placeholder="Buscar produto pelo nome...">
+        </div>
+        <div class="table-wrap">
+          <table class="responsive">
+            <thead><tr><th>Produto</th><th class="num">Preço de venda</th><th class="num">CMV</th><th class="num">Margem de contribuição</th><th class="num">Lucro</th></tr></thead>
+            <tbody id="produtosBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<datalist id="insumosList"></datalist>
+
+<div class="scrim" id="scrimInsumo">
+  <div class="sheet" id="sheetInsumo">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><h3 id="insumoSheetTitle">Novo insumo</h3><button class="icon-btn" data-close="scrimInsumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-body">
+      <div class="field"><label for="insNome">Nome do insumo</label><input type="text" id="insNome" placeholder="Ex: Queijo cheddar fatiado"></div>
+      <div class="row-flex">
+        <div class="field"><label for="insUnidade">Unidade de controle</label>
+          <select id="insUnidade"><option value="kg">kg</option><option value="g">g</option><option value="l">l</option><option value="ml">ml</option><option value="un">un</option></select>
+        </div>
+        <div class="field"><label for="insPreco">Preço por unidade</label><input type="number" id="insPreco" step="0.01" min="0" placeholder="0,00"></div>
+      </div>
+      <div class="card" style="background:var(--surface2);border-style:dashed;">
+        <div class="card-pad" style="padding:14px 16px;">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Usar fator de correção</div><div class="toggle-hint">Perda de peso/volume no preparo (limpeza, cocção, aparas)</div></div>
+            <label class="switch"><input type="checkbox" id="insUsaFC"><span class="track"></span><span class="thumb"></span></label>
+          </div>
+          <div id="fcExtra" style="display:none;margin-top:12px;">
+            <div class="fc-fields">
+              <div class="field" style="margin:0;"><label for="insPesoInicial">Peso/qtd. inicial</label><input type="number" id="insPesoInicial" step="0.001" min="0" placeholder="Ex: 1000"></div>
+              <div class="field" style="margin:0;"><div class="segmented" id="fcModoSeg"><button type="button" class="active" data-modo="final">Peso final</button><button type="button" data-modo="perda">Perda</button></div></div>
+            </div>
+            <div class="field" style="margin-top:10px;"><label id="fcSecondLabel" for="insPesoFinal">Peso/qtd. final (depois do preparo)</label><input type="number" id="insPesoFinal" step="0.001" min="0" placeholder="Ex: 940"></div>
+            <div class="fc-preview pending" id="fcPreview" style="margin-top:6px;">Informe os pesos para calcular</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-footer"><button class="btn" data-close="scrimInsumo">Cancelar</button><button class="btn btn-primary" id="saveInsumoBtn">Salvar insumo</button></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrimIngrediente">
+  <div class="sheet" id="sheetIngrediente">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><h3>Adicionar ingrediente</h3><button class="icon-btn" data-close="scrimIngrediente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-body">
+      <div class="field"><label for="ingSearch">Insumo</label><input type="text" id="ingSearch" list="insumosList" placeholder="Digite para buscar..."></div>
+      <div class="row-flex">
+        <div class="field"><label for="ingQtd">Quantidade <span id="ingUnidadeHint" class="hint"></span></label><input type="number" id="ingQtd" step="0.001" min="0" placeholder="0"></div>
+        <div class="field"><label for="ingMedida">Medida prática</label><input type="text" id="ingMedida" placeholder="Ex: 2 colheres de sopa"></div>
+      </div>
+      <div class="fc-preview pending" id="ingPreview">Selecione um insumo da lista</div>
+    </div>
+    <div class="sheet-footer"><button class="btn" data-close="scrimIngrediente">Cancelar</button><button class="btn btn-primary" id="saveIngredienteBtn">Adicionar</button></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrimNovoProduto">
+  <div class="sheet" id="sheetNovoProduto">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><h3>Novo produto</h3><button class="icon-btn" data-close="scrimNovoProduto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-body">
+      <div class="field"><label for="npNome">Nome do produto</label><input type="text" id="npNome" placeholder="Ex: X-Salada Especial"></div>
+      <div class="field"><label for="npPV">Preço de venda inicial</label><input type="number" id="npPV" step="0.10" min="0" placeholder="em branco = insumo interno"></div>
+      <p class="hint">Você adiciona os ingredientes na tela seguinte, na ficha técnica do produto.</p>
+    </div>
+    <div class="sheet-footer"><button class="btn" data-close="scrimNovoProduto">Cancelar</button><button class="btn btn-primary" id="saveNovoProdutoBtn">Criar e abrir ficha</button></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrimConfig">
+  <div class="sheet" id="sheetConfig">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header"><h3>Configurações</h3><button class="icon-btn" data-close="scrimConfig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-body">
+      <p class="hint">Esses dois parâmetros são globais — valem para todas as fichas técnicas, e recalculam tudo na hora.</p>
+      <div class="field"><label for="cfgFixo">Custo fixo (% sobre o preço de venda)</label><input type="number" id="cfgFixo" step="0.5" min="0"></div>
+      <div class="field"><label for="cfgVar">Despesa variável (% sobre o preço de venda)</label><input type="number" id="cfgVar" step="0.5" min="0"></div>
+    </div>
+    <div class="sheet-footer"><button class="btn" data-close="scrimConfig">Cancelar</button><button class="btn btn-primary" id="saveConfigBtn">Salvar configurações</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= CONEXÃO COM O APPS SCRIPT ================= */
+  // Cole aqui a URL do seu Web App (termina em /exec) depois de publicar o Code.gs.
+  var API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyJJz5HH_IMdKgpr0HbUiNYkR3VxBUVZikeQzg46zCkbPqg2d6zhgRMT_RTzEnCziHO/exec';
+
+  var CONFIG = { custoFixoPercent: 15, despesaVariavelPercent: 8 };
+  var insumos = [];
+  var fichas = [];
+
+  /* ================= HELPERS ================= */
+  function brl(n){ return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+  function numStr(n,d){ d = d===undefined?1:d; return (n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+  function pctStr(n,d){ return numStr(n,d===undefined?1:d)+'%'; }
+  function pctBrl(pct,val,d){ return pctStr(pct,d)+' · '+brl(val); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function byId(id){ return document.getElementById(id); }
+  function findInsumo(id){ return insumos.find(function(i){return i.id===id;}); }
+  function findFicha(id){ return fichas.find(function(f){return f.id===id;}); }
+  function findFichaByInsumoVinculado(insumoId){ return fichas.find(function(f){return f.insumoVinculadoId===insumoId;}); }
+  function normalizeText(s){ return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+  function findInsumoByNome(nome){
+    var n = normalizeText(nome);
+    return insumos.find(function(i){ return normalizeText(i.nome)===n; });
+  }
+
+  function precoFinalInsumo(ins, _visited){
+    var origem = findFichaByInsumoVinculado(ins.id);
+    if(origem){
+      var c = calcFicha(origem, _visited || {});
+      return c.cmvUnitario;
+    }
+    return ins.preco * (ins.fc || 1);
+  }
+
+  function calcFicha(ficha, _visited){
+    _visited = _visited || {};
+    if(_visited[ficha.id]){
+      return {itens:[], herdado:null, cmvTotal:0, cmvUnitario:0, rendQtd:1, cmvPct:0, custoFixo:0, despesaVariavel:0, mc:0, mcPct:0, lucro:0, lucroPct:0, pv:0, temPV:false};
+    }
+    var visited2 = Object.assign({}, _visited);
+    visited2[ficha.id] = true;
+
+    var herdado = null;
+    var cmvHerdado = 0;
+    if(ficha.fichaPaiId){
+      var pai = findFicha(ficha.fichaPaiId);
+      if(pai){
+        var cPai = calcFicha(pai, visited2);
+        cmvHerdado = cPai.cmvUnitario;
+        herdado = {id:pai.id, nome:pai.nome, valor:cmvHerdado};
+      }
+    }
+
+    var itens = ficha.ingredientes.map(function(ing){
+      var ins = findInsumo(ing.insumoId);
+      var pf = ins ? precoFinalInsumo(ins, visited2) : 0;
+      var custo = ing.quantidade * pf;
+      return {ing:ing, insumo:ins, precoFinal:pf, custo:custo};
+    });
+    var itensTotal = itens.reduce(function(s,i){return s+i.custo;},0);
+    var cmvTotal = itensTotal + cmvHerdado;
+    itens.forEach(function(i){ i.pct = cmvTotal ? (i.custo/cmvTotal*100) : 0; });
+    if(herdado) herdado.pct = cmvTotal ? (cmvHerdado/cmvTotal*100) : 0;
+
+    var rend = ficha.rendimento || {quantidade:1, unidade:'un', nota:''};
+    var rendQtd = (rend.quantidade && rend.quantidade>0) ? rend.quantidade : 1;
+    var cmvUnitario = cmvTotal / rendQtd;
+
+    var pv = ficha.precoVenda || 0;
+    var temPV = pv > 0;
+    var cmvPct = temPV ? (cmvUnitario/pv*100) : 0;
+    var custoFixo = pv * CONFIG.custoFixoPercent/100;
+    var despesaVariavel = pv * CONFIG.despesaVariavelPercent/100;
+    var mc = pv - cmvUnitario - despesaVariavel;
+    var mcPct = temPV ? (mc/pv*100) : 0;
+    var lucro = mc - custoFixo;
+    var lucroPct = temPV ? (lucro/pv*100) : 0;
+
+    return {
+      itens:itens, herdado:herdado, cmvTotal:cmvTotal, cmvUnitario:cmvUnitario, rendQtd:rendQtd,
+      cmvPct:cmvPct, custoFixo:custoFixo, despesaVariavel:despesaVariavel,
+      mc:mc, mcPct:mcPct, lucro:lucro, lucroPct:lucroPct, pv:pv, temPV:temPV
+    };
+  }
+
+  function lucroTier(pct){ if(pct>=30) return 'green'; if(pct>=15) return 'amber'; return 'red'; }
+  function tierLabel(t){ return t==='green' ? 'Saudável' : t==='amber' ? 'Atenção' : 'Crítico'; }
+
+  /* ================= SINCRONIA COM O APPS SCRIPT ================= */
+  var saveTimer = null;
+
+  function agendarSalvamento(){
+    setAutosaveEstado('pending');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(salvarTudoAgora, 900);
+  }
+
+  function salvarTudoAgora(){
+    setAutosaveEstado('saving');
+    fetch(API_BASE_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, // evita preflight de CORS no Apps Script
+      body: JSON.stringify({action:'salvarTudo', payload:{insumos:insumos, fichas:fichas, configuracoes:CONFIG}})
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(resp){ setAutosaveEstado(resp && resp.ok ? 'saved' : 'erro'); })
+      .catch(function(){ setAutosaveEstado('erro'); });
+  }
+
+  function setAutosaveEstado(estado){
+    var el = byId('autosaveIndicator');
+    var txt = byId('autosaveText');
+    if(!el || !txt) return;
+    var textos = {
+      idle:'Alterações salvas automaticamente na planilha',
+      pending:'Alterações pendentes…',
+      saving:'Salvando na planilha…',
+      saved:'Salvo na planilha',
+      erro:'Erro ao salvar — verifique a conexão'
+    };
+    el.className = 'autosave' + (estado==='pending' ? ' pending' : estado==='erro' ? ' erro' : '');
+    txt.textContent = textos[estado] || textos.idle;
+  }
+
+  function carregarDados(){
+    fetch(API_BASE_URL + '?action=getTudo')
+      .then(function(r){
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return r.json();
+      })
+      .then(function(data){
+        if(!data.ok) throw new Error(data.erro || 'Falha ao carregar dados');
+        insumos = data.insumos || [];
+        fichas = data.fichas || [];
+        if(data.configuracoes){
+          CONFIG.custoFixoPercent = data.configuracoes.custoFixoPercent!=null ? data.configuracoes.custoFixoPercent : 15;
+          CONFIG.despesaVariavelPercent = data.configuracoes.despesaVariavelPercent!=null ? data.configuracoes.despesaVariavelPercent : 8;
+        }
+        renderInsumosDatalist();
+        byId('loadingOverlay').style.display = 'none';
+        navigate('insumos');
+      })
+      .catch(function(err){
+        byId('loadingText').textContent = '';
+        var p = document.createElement('p');
+        p.className = 'erro';
+        p.textContent = 'Não deu pra carregar os dados da planilha. Confira se API_BASE_URL está preenchida com a URL do Apps Script publicado, e se o deploy está com acesso liberado. Detalhe: ' + err.message;
+        byId('loadingOverlay').appendChild(p);
+      });
+  }
+
+  /* ================= NAV / SHELL STATE ================= */
+  var state = { view:'insumos', fichaId:null };
+  var filters = { insumos:'', fichas:'', produtos:'' };
+  var body = document.body;
+
+  function openDrawer(){ body.classList.add('drawer-open'); }
+  function closeDrawer(){ body.classList.remove('drawer-open'); }
+
+  byId('menuBtn').addEventListener('click', openDrawer);
+  byId('sidebarScrim').addEventListener('click', closeDrawer);
+  byId('backBtn').addEventListener('click', function(){ navigate('fichas'); });
+
+  byId('collapseBtn').addEventListener('click', function(){
+    body.classList.toggle('sidebar-collapsed');
+    try{ localStorage.setItem('hb_sidebar_collapsed', body.classList.contains('sidebar-collapsed') ? '1':'0'); }catch(e){}
+  });
+  try{ if(localStorage.getItem('hb_sidebar_collapsed')==='1') body.classList.add('sidebar-collapsed'); }catch(e){}
+
+  document.querySelectorAll('.nav-item').forEach(function(btn){
+    btn.addEventListener('click', function(){ navigate(btn.dataset.nav); });
+  });
+
+  byId('searchInsumos').addEventListener('input', function(){ filters.insumos=this.value; renderInsumos(); });
+  byId('searchFichas').addEventListener('input', function(){ filters.fichas=this.value; renderFichasList(); });
+  byId('searchProdutos').addEventListener('input', function(){ filters.produtos=this.value; renderProdutos(); });
+
+  var TOPBAR = {
+    insumos:     {title:'Insumos',       sub:function(){ return insumos.length+' insumos cadastrados'; }, action:'Novo insumo', show:true},
+    fichas:      {title:'Ficha Técnica', sub:function(){ return fichas.length+' fichas técnicas cadastradas'; }, action:'Novo produto', show:true},
+    fichaDetail: {title:'Ficha Técnica', sub:function(){ var f=findFicha(state.fichaId); return f? f.nome : ''; }, action:'Adicionar ingrediente', show:true},
+    produtos:    {title:'Produtos',      sub:function(){ return 'Visão consolidada — somente leitura'; }, action:null, show:false}
+  };
+
+  function updateTopbar(){
+    var cfg = TOPBAR[state.view];
+    byId('pageTitle').textContent = cfg.title;
+    byId('pageSub').textContent = cfg.sub();
+    byId('backBtn').style.display = state.view==='fichaDetail' ? 'inline-flex' : 'none';
+    var topAction = byId('topAction');
+    if(cfg.show){ topAction.style.display='inline-flex'; byId('topActionLabel').textContent = cfg.action; }
+    else { topAction.style.display='none'; }
+  }
+
+  byId('topAction').addEventListener('click', function(){
+    if(state.view==='insumos') openInsumoSheet(null);
+    else if(state.view==='fichas') openNovoProdutoSheet();
+    else if(state.view==='fichaDetail') openIngredienteSheet();
+  });
+  byId('addIngredienteBtn').addEventListener('click', openIngredienteSheet);
+
+  function navigate(view, params){
+    params = params || {};
+    state.view = view;
+    if(view==='fichaDetail') state.fichaId = params.id;
+    document.querySelectorAll('.view').forEach(function(v){ v.hidden = v.dataset.view!==view; });
+    document.querySelectorAll('.nav-item').forEach(function(b){
+      b.classList.toggle('active', b.dataset.nav===view || (view==='fichaDetail' && b.dataset.nav==='fichas'));
+    });
+    updateTopbar();
+    closeDrawer();
+    window.scrollTo(0,0);
+    if(view==='insumos') renderInsumos();
+    if(view==='fichas') renderFichasList();
+    if(view==='fichaDetail') renderFichaDetail(state.fichaId);
+    if(view==='produtos') renderProdutos();
+  }
+
+  /* ================= SHEETS (bottom sheets) ================= */
+  function openSheet(id){ byId(id).classList.add('active'); document.body.style.overflow='hidden'; }
+  function closeSheet(id){ byId(id).classList.remove('active'); document.body.style.overflow=''; }
+  document.querySelectorAll('[data-close]').forEach(function(btn){ btn.addEventListener('click', function(){ closeSheet(btn.dataset.close); }); });
+  document.querySelectorAll('.scrim').forEach(function(scrim){ scrim.addEventListener('click', function(e){ if(e.target===scrim) closeSheet(scrim.id); }); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ document.querySelectorAll('.scrim.active').forEach(function(s){ closeSheet(s.id); }); } });
+
+  function renderInsumosDatalist(){
+    byId('insumosList').innerHTML = insumos.map(function(i){
+      return '<option value="'+esc(i.nome)+'">'+esc(i.unidade)+' · '+brl(precoFinalInsumo(i))+'</option>';
+    }).join('');
+  }
+
+  /* ================= RENDER: INSUMOS ================= */
+  function renderInsumos(){
+    var listBody = byId('insumosBody');
+    var q = normalizeText(filters.insumos);
+    var lista = q ? insumos.filter(function(i){ return normalizeText(i.nome).indexOf(q)!==-1; }) : insumos;
+
+    listBody.innerHTML = lista.map(function(ins){
+      var origem = findFichaByInsumoVinculado(ins.id);
+      var pf = precoFinalInsumo(ins);
+      var fcHtml = origem
+        ? '<span class="badge badge-neutral" title="Preço sempre igual ao custo desta receita">🔗 '+esc(origem.nome)+'</span>'
+        : (ins.fc && ins.fc!==1 ? '<span class="fc-tag">'+numStr(ins.fc,4)+'×</span>' : '<span class="fc-tag off">—</span>');
+      var precoCell = origem ? '<span class="mono">'+brl(pf)+'</span>' : '<input class="cell-input num mono insumo-preco" data-id="'+ins.id+'" type="number" step="0.01" min="0" value="'+ins.preco+'">';
+      return (
+        '<tr data-id="'+ins.id+'">'+
+          '<td data-label="Insumo" class="cell-title"><div class="row-name">'+esc(ins.nome)+'</div></td>'+
+          '<td data-label="Unidade">'+esc(ins.unidade)+'</td>'+
+          '<td data-label="Preço" class="num">'+precoCell+'</td>'+
+          '<td data-label="Fator de correção">'+fcHtml+'</td>'+
+          '<td data-label="Preço final" class="num mono">'+brl(pf)+'</td>'+
+          '<td data-label="Atualizado"><span class="row-sub">'+esc(ins.atualizado)+'</span></td>'+
+          '<td data-label="" style="text-align:right;white-space:nowrap;">'+
+            '<button class="icon-btn edit-insumo" data-id="'+ins.id+'" aria-label="Editar" title="'+(origem?'Editar na ficha técnica de origem':'Editar')+'">'+
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>'+
+            '</button>'+
+            (origem ? '' : '<button class="icon-btn del-insumo" data-id="'+ins.id+'" aria-label="Excluir" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg></button>')+
+          '</td>'+
+        '</tr>'
+      );
+    }).join('') || '<tr><td colspan="7"><div class="empty">'+(q?'Nenhum insumo encontrado para "'+esc(filters.insumos)+'".':'Nenhum insumo cadastrado ainda.')+'</div></td></tr>';
+
+    listBody.querySelectorAll('.insumo-preco').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var ins = findInsumo(inp.dataset.id);
+        var v = parseFloat(inp.value);
+        if(isNaN(v) || v<0) v = ins.preco;
+        ins.preco = v;
+        ins.atualizado = new Date().toLocaleDateString('pt-BR');
+        renderInsumos();
+        renderInsumosDatalist();
+        agendarSalvamento();
+      });
+    });
+    listBody.querySelectorAll('.edit-insumo').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var origem = findFichaByInsumoVinculado(btn.dataset.id);
+        if(origem) navigate('fichaDetail', {id:origem.id});
+        else openInsumoSheet(btn.dataset.id);
+      });
+    });
+    listBody.querySelectorAll('.del-insumo').forEach(function(btn){
+      btn.addEventListener('click', function(){ confirmTwoStep(btn, function(){
+        insumos = insumos.filter(function(i){ return i.id!==btn.dataset.id; });
+        renderInsumos();
+        renderInsumosDatalist();
+        updateTopbar();
+        agendarSalvamento();
+      }); });
+    });
+  }
+
+  function confirmTwoStep(btn, onConfirm){
+    if(btn.dataset.confirming==='1'){ onConfirm(); return; }
+    btn.dataset.confirming='1';
+    btn.classList.add('btn-danger');
+    var original = btn.innerHTML;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+    btn.title = 'Clique de novo para confirmar';
+    setTimeout(function(){
+      btn.dataset.confirming='0';
+      btn.classList.remove('btn-danger');
+      btn.innerHTML = original;
+      btn.title = 'Excluir';
+    }, 2500);
+  }
+
+  var editingInsumoId = null;
+  var fcModo = 'final';
+  var fcComputed = {fc:1, pesoFinal:null};
+
+  function openInsumoSheet(id){
+    editingInsumoId = id;
+    var ins = id ? findInsumo(id) : null;
+    byId('insumoSheetTitle').textContent = ins ? 'Editar insumo' : 'Novo insumo';
+    byId('insNome').value = ins ? ins.nome : '';
+    byId('insUnidade').value = ins ? ins.unidade : 'kg';
+    byId('insPreco').value = ins ? ins.preco : '';
+    var usaFC = !!(ins && ins.fc && ins.fc!==1);
+    byId('insUsaFC').checked = usaFC;
+    byId('fcExtra').style.display = usaFC ? 'block' : 'none';
+    byId('insPesoInicial').value = (ins && ins.pesoInicial!=null) ? ins.pesoInicial : '';
+    fcModo = 'final';
+    document.querySelectorAll('#fcModoSeg button').forEach(function(b){ b.classList.toggle('active', b.dataset.modo==='final'); });
+    byId('fcSecondLabel').textContent = 'Peso/qtd. final (depois do preparo)';
+    byId('insPesoFinal').placeholder = 'Ex: 940';
+    byId('insPesoFinal').value = (ins && ins.pesoFinal!=null) ? ins.pesoFinal : '';
+    recalcFC();
+    openSheet('scrimInsumo');
+  }
+
+  byId('insUsaFC').addEventListener('change', function(){ byId('fcExtra').style.display = this.checked ? 'block' : 'none'; recalcFC(); });
+  document.querySelectorAll('#fcModoSeg button').forEach(function(b){
+    b.addEventListener('click', function(){
+      fcModo = b.dataset.modo;
+      document.querySelectorAll('#fcModoSeg button').forEach(function(x){ x.classList.toggle('active', x===b); });
+      byId('fcSecondLabel').textContent = fcModo==='final' ? 'Peso/qtd. final (depois do preparo)' : 'Perda (quanto foi descartado)';
+      byId('insPesoFinal').placeholder = fcModo==='final' ? 'Ex: 940' : 'Ex: 60';
+      recalcFC();
+    });
+  });
+  ['insPesoInicial','insPesoFinal','insPreco','insUnidade'].forEach(function(id){ byId(id).addEventListener('input', recalcFC); });
+
+  function recalcFC(){
+    var preview = byId('fcPreview');
+    if(!byId('insUsaFC').checked){
+      preview.className='fc-preview pending';
+      preview.textContent = 'Sem correção · preço final = preço informado';
+      fcComputed = {fc:1, pesoFinal:null};
+      return;
+    }
+    var pi = parseFloat(byId('insPesoInicial').value);
+    var raw = parseFloat(byId('insPesoFinal').value);
+    var pf = null;
+    if(!isNaN(pi) && pi>0 && !isNaN(raw)){ pf = fcModo==='final' ? raw : (pi - raw); }
+    if(pi>0 && pf>0){
+      var fc = pi/pf;
+      var preco = parseFloat(byId('insPreco').value)||0;
+      var precoFinal = preco*fc;
+      var unidade = byId('insUnidade').value;
+      preview.className='fc-preview';
+      preview.textContent = 'Fator calculado: '+numStr(fc,4)+'× · Preço final: '+brl(precoFinal)+'/'+unidade;
+      fcComputed = {fc:fc, pesoFinal:pf};
+    } else {
+      preview.className='fc-preview pending';
+      preview.textContent = 'Informe os pesos para calcular o fator';
+      fcComputed = {fc:null, pesoFinal:null};
+    }
+  }
+
+  byId('saveInsumoBtn').addEventListener('click', function(){
+    var nome = byId('insNome').value.trim();
+    var preco = parseFloat(byId('insPreco').value);
+    if(!nome || isNaN(preco) || preco<0){ byId('insNome').focus(); return; }
+    var usaFC = byId('insUsaFC').checked;
+    var pi = parseFloat(byId('insPesoInicial').value);
+
+    var data = {
+      nome: nome, unidade: byId('insUnidade').value, preco: preco,
+      fc: (usaFC && fcComputed.fc) ? fcComputed.fc : 1,
+      pesoInicial: (usaFC && fcComputed.fc) ? pi : null,
+      pesoFinal: (usaFC && fcComputed.fc) ? fcComputed.pesoFinal : null,
+      atualizado: new Date().toLocaleDateString('pt-BR')
+    };
+
+    if(editingInsumoId){
+      var ins = findInsumo(editingInsumoId);
+      Object.assign(ins, data);
+    } else {
+      data.id = 'i'+Date.now();
+      data.fichaOrigemId = null;
+      insumos.push(data);
+    }
+    closeSheet('scrimInsumo');
+    renderInsumos();
+    renderInsumosDatalist();
+    updateTopbar();
+    agendarSalvamento();
+  });
+
+  /* ================= RENDER: FICHAS (lista) ================= */
+  function renderFichasList(){
+    var listBody = byId('fichasBody');
+    var q = normalizeText(filters.fichas);
+    var lista = q ? fichas.filter(function(f){ return normalizeText(f.nome).indexOf(q)!==-1; }) : fichas;
+
+    listBody.innerHTML = lista.map(function(f){
+      var c = calcFicha(f);
+      var lucroCell, cmvCell;
+      if(c.temPV){
+        var tier = lucroTier(c.lucroPct);
+        cmvCell = pctStr(c.cmvPct);
+        lucroCell = '<span class="badge badge-'+tier+'">'+pctStr(c.lucroPct)+'</span>';
+      } else {
+        cmvCell = '—';
+        lucroCell = '<span class="badge tag-interno">Uso interno</span>';
+      }
+      return (
+        '<tr class="clickable" data-id="'+f.id+'">'+
+          '<td data-label="Produto" class="cell-title"><div class="row-name">'+esc(f.nome)+'</div><div class="row-sub">'+f.ingredientes.length+' ingredientes</div></td>'+
+          '<td data-label="Preço de venda" class="num mono">'+(c.temPV?brl(f.precoVenda):'—')+'</td>'+
+          '<td data-label="CMV" class="num mono">'+cmvCell+'</td>'+
+          '<td data-label="Lucro" class="num">'+lucroCell+'</td>'+
+          '<td data-label="" class="num"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></td>'+
+        '</tr>'
+      );
+    }).join('') || '<tr><td colspan="5"><div class="empty">'+(q?'Nenhum produto encontrado para "'+esc(filters.fichas)+'".':'Nenhum produto com ficha técnica ainda.')+'</div></td></tr>';
+
+    listBody.querySelectorAll('tr[data-id]').forEach(function(tr){ tr.addEventListener('click', function(){ navigate('fichaDetail', {id:tr.dataset.id}); }); });
+  }
+
+  function openNovoProdutoSheet(){ byId('npNome').value=''; byId('npPV').value=''; openSheet('scrimNovoProduto'); }
+  byId('saveNovoProdutoBtn').addEventListener('click', function(){
+    var nome = byId('npNome').value.trim();
+    if(!nome){ byId('npNome').focus(); return; }
+    var pv = parseFloat(byId('npPV').value); if(isNaN(pv)||pv<0) pv=0;
+    var f = {id:'f'+Date.now(), nome:nome, precoVenda:pv, insumoVinculadoId:null, fichaPaiId:null, rendimento:{quantidade:1,unidade:'un',nota:''}, ingredientes:[]};
+    fichas.push(f);
+    closeSheet('scrimNovoProduto');
+    agendarSalvamento();
+    navigate('fichaDetail', {id:f.id});
+  });
+
+  /* ================= RENDER: FICHA DETALHE ================= */
+  var sim = {modo:'reais', valor:null, pvAlvo:null};
+
+  function renderPaiInfo(f){
+    var el = byId('paiInfo');
+    if(!el) return;
+    var pai = f.fichaPaiId ? findFicha(f.fichaPaiId) : null;
+    if(pai){
+      el.innerHTML = '<div class="pai-banner">🔗 Derivado de <button class="link-cfg" id="paiLink">'+esc(pai.nome)+'</button> — o custo dele entra automaticamente como a primeira linha de ingredientes abaixo.</div>';
+      el.hidden = false;
+      byId('paiLink').addEventListener('click', function(){ navigate('fichaDetail', {id:pai.id}); });
+    } else {
+      el.innerHTML = ''; el.hidden = true;
+    }
+  }
+
+  function renderFilhos(f){
+    var wrap = byId('filhosWrap');
+    if(!wrap) return;
+    var filhos = fichas.filter(function(x){ return x.fichaPaiId===f.id; });
+    if(!filhos.length){ wrap.innerHTML = ''; return; }
+    wrap.innerHTML = '<div class="filhos-list">'+filhos.map(function(x){
+      var cx = calcFicha(x);
+      return '<button type="button" class="filho-chip" data-id="'+x.id+'"><span>'+esc(x.nome)+'</span><span class="mono">'+(cx.temPV?brl(x.precoVenda):'sem preço')+'</span></button>';
+    }).join('')+'</div>';
+    wrap.querySelectorAll('.filho-chip').forEach(function(b){ b.addEventListener('click', function(){ navigate('fichaDetail', {id:b.dataset.id}); }); });
+  }
+
+  function renderFichaDetail(id){
+    var f = findFicha(id);
+    if(!f) return;
+    if(!f.rendimento) f.rendimento = {quantidade:1, unidade:'un', nota:''};
+    sim = {modo:'reais', valor:null, pvAlvo:null};
+
+    byId('fichaNome').value = f.nome;
+    byId('fichaPV').value = f.precoVenda || '';
+
+    renderPaiInfo(f);
+    renderFilhos(f);
+
+    var ingBody = byId('ingredientesBody');
+    var herdadoRowHtml = '';
+    if(f.fichaPaiId){
+      var pai = findFicha(f.fichaPaiId);
+      if(pai){
+        var cPaiPreview = calcFicha(pai);
+        herdadoRowHtml =
+          '<tr class="inherited-row">'+
+            '<td data-label="Insumo" class="cell-title"><div class="row-name">🔗 '+esc(pai.nome)+'</div><div class="row-sub">custo herdado da receita-mãe</div></td>'+
+            '<td data-label="Unidade">'+esc(f.rendimento.unidade)+'</td>'+
+            '<td data-label="Quantidade">—</td>'+
+            '<td data-label="Medida prática">—</td>'+
+            '<td data-label="Custo" class="num mono" id="herdadoCusto">'+brl(cPaiPreview.cmvUnitario)+'</td>'+
+            '<td data-label="% do total" class="num mono" id="herdadoPct">0,0%</td>'+
+            '<td data-label=""><button class="icon-btn unlink-pai" aria-label="Desvincular do pai" title="Desvincular do pai">'+
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 5.5l-13 13M9 5H5a2 2 0 00-2 2v4M15 19h4a2 2 0 002-2v-4"/></svg>'+
+            '</button></td>'+
+          '</tr>';
+      }
+    }
+    if(!f.ingredientes.length && !herdadoRowHtml){
+      ingBody.innerHTML = '<tr><td colspan="7"><div class="empty">Nenhum ingrediente ainda — adicione o primeiro.</div></td></tr>';
+    } else {
+      ingBody.innerHTML = herdadoRowHtml + f.ingredientes.map(function(ing, idx){
+        var ins = findInsumo(ing.insumoId);
+        return (
+          '<tr>'+
+            '<td data-label="Insumo"><input type="text" class="cell-input ing-field" data-field="insumo" data-idx="'+idx+'" list="insumosList" value="'+esc(ins?ins.nome:'')+'"></td>'+
+            '<td data-label="Unidade"><span class="row-sub ing-unidade" data-idx="'+idx+'">'+esc(ins?ins.unidade:'')+'</span></td>'+
+            '<td data-label="Quantidade"><input class="cell-input num mono ing-field" data-field="quantidade" data-idx="'+idx+'" type="number" step="0.001" min="0" value="'+ing.quantidade+'"></td>'+
+            '<td data-label="Medida prática"><input class="cell-input ing-field" data-field="medida" data-idx="'+idx+'" type="text" placeholder="Ex: 2 colheres de sopa" value="'+esc(ing.medida||'')+'"></td>'+
+            '<td data-label="Custo" class="num mono row-custo" data-idx="'+idx+'">R$ 0,00</td>'+
+            '<td data-label="% do total" class="num mono row-pct" data-idx="'+idx+'">0,0%</td>'+
+            '<td data-label=""><button class="icon-btn del-ing" data-idx="'+idx+'" aria-label="Remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13"/></svg></button></td>'+
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    ingBody.querySelectorAll('input[data-field="insumo"]').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var match = findInsumoByNome(inp.value);
+        if(match) f.ingredientes[+inp.dataset.idx].insumoId = match.id;
+        renderFichaDetail(f.id);
+        agendarSalvamento();
+      });
+    });
+    ingBody.querySelectorAll('.del-ing').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        f.ingredientes.splice(+btn.dataset.idx, 1);
+        renderFichaDetail(f.id);
+        renderFichasList();
+        agendarSalvamento();
+      });
+    });
+    var unlinkPaiBtn = ingBody.querySelector('.unlink-pai');
+    if(unlinkPaiBtn){
+      unlinkPaiBtn.addEventListener('click', function(){
+        f.fichaPaiId = null;
+        renderFichaDetail(f.id);
+        renderFichasList();
+        agendarSalvamento();
+      });
+    }
+    ingBody.querySelectorAll('input[data-field="quantidade"]').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var v = parseFloat(inp.value); if(isNaN(v)||v<0) v=0;
+        f.ingredientes[+inp.dataset.idx].quantidade = v;
+        refreshFichaCalculations(f.id);
+        agendarSalvamento();
+      });
+    });
+    ingBody.querySelectorAll('input[data-field="medida"]').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        f.ingredientes[+inp.dataset.idx].medida = inp.value;
+        agendarSalvamento();
+      });
+    });
+
+    byId('rendQtd').value = f.rendimento.quantidade;
+    byId('rendUnidade').value = f.rendimento.unidade;
+    byId('rendNota').value = f.rendimento.nota || '';
+
+    refreshFichaCalculations(f.id);
+  }
+
+  byId('fichaNome').addEventListener('input', function(){
+    var f = findFicha(state.fichaId);
+    if(!f) return;
+    f.nome = byId('fichaNome').value;
+    byId('pageSub').textContent = f.nome;
+    agendarSalvamento();
+  });
+  byId('fichaPV').addEventListener('input', function(){
+    var f = findFicha(state.fichaId);
+    if(!f) return;
+    var v = parseFloat(byId('fichaPV').value); if(isNaN(v)||v<0) v=0;
+    f.precoVenda = v;
+    refreshFichaCalculations(f.id);
+    agendarSalvamento();
+  });
+  ['rendQtd','rendUnidade'].forEach(function(id){
+    byId(id).addEventListener('input', function(){
+      var f = findFicha(state.fichaId);
+      if(!f) return;
+      var qtd = parseFloat(byId('rendQtd').value);
+      f.rendimento.quantidade = (!isNaN(qtd) && qtd>0) ? qtd : 1;
+      f.rendimento.unidade = byId('rendUnidade').value;
+      refreshFichaCalculations(f.id);
+      agendarSalvamento();
+    });
+  });
+  byId('rendNota').addEventListener('input', function(){
+    var f = findFicha(state.fichaId);
+    if(!f) return;
+    f.rendimento.nota = byId('rendNota').value;
+    agendarSalvamento();
+  });
+
+  byId('publishBtn').addEventListener('click', function(){
+    var f = findFicha(state.fichaId);
+    if(!f) return;
+    if(f.insumoVinculadoId){
+      f.insumoVinculadoId = null;
+    } else {
+      var c = calcFicha(f);
+      var hoje = new Date().toLocaleDateString('pt-BR');
+      var novo = {id:'i'+Date.now(), nome:f.nome, unidade:f.rendimento.unidade, preco:c.cmvUnitario, fc:1, pesoInicial:null, pesoFinal:null, atualizado:hoje, fichaOrigemId:f.id};
+      insumos.push(novo);
+      f.insumoVinculadoId = novo.id;
+    }
+    renderInsumosDatalist();
+    refreshFichaCalculations(f.id);
+    agendarSalvamento();
+  });
+
+  byId('publishProdutoBtn').addEventListener('click', function(){
+    var f = findFicha(state.fichaId);
+    if(!f) return;
+    var filho = {
+      id:'f'+Date.now(), nome:f.nome+' — unidade', precoVenda:0,
+      insumoVinculadoId:null, fichaPaiId:f.id,
+      rendimento:{quantidade:1, unidade:f.rendimento.unidade, nota:''},
+      ingredientes:[]
+    };
+    fichas.push(filho);
+    agendarSalvamento();
+    navigate('fichaDetail', {id:filho.id});
+  });
+
+  function refreshFichaCalculations(id){
+    var f = findFicha(id);
+    if(!f) return;
+    var c = calcFicha(f);
+
+    c.itens.forEach(function(it, idx){
+      var custoCell = document.querySelector('.row-custo[data-idx="'+idx+'"]');
+      var pctCell = document.querySelector('.row-pct[data-idx="'+idx+'"]');
+      var unidCell = document.querySelector('.ing-unidade[data-idx="'+idx+'"]');
+      if(custoCell) custoCell.textContent = brl(it.custo);
+      if(pctCell) pctCell.textContent = pctStr(it.pct);
+      if(unidCell) unidCell.textContent = it.insumo ? it.insumo.unidade : '';
+    });
+    if(c.herdado){
+      var herdCusto = byId('herdadoCusto');
+      var herdPct = byId('herdadoPct');
+      if(herdCusto) herdCusto.textContent = brl(c.herdado.valor);
+      if(herdPct) herdPct.textContent = pctStr(c.herdado.pct);
+    }
+
+    byId('rendReadout').textContent =
+      'Custo total da receita: '+brl(c.cmvTotal)+' · Custo por '+f.rendimento.unidade+': '+brl(c.cmvUnitario)+
+      (c.rendQtd>1 ? ' (rende '+numStr(c.rendQtd,c.rendQtd%1===0?0:2)+' '+f.rendimento.unidade+')' : '');
+
+    var linked = f.insumoVinculadoId ? findInsumo(f.insumoVinculadoId) : null;
+    var publishInfo = byId('publishInfo');
+    var publishLabel = byId('publishBtnLabel');
+    if(linked){
+      publishInfo.innerHTML = 'Vinculado ao insumo <strong>'+esc(linked.nome)+'</strong> · preço sempre igual ao custo desta receita (agora: <strong class="mono">'+brl(c.cmvUnitario)+'/'+esc(f.rendimento.unidade)+'</strong>) — não precisa atualizar manualmente.';
+      publishLabel.textContent = 'Desvincular insumo';
+    } else {
+      publishInfo.textContent = 'Esta receita ainda não gera um insumo na lista de Insumos.';
+      publishLabel.textContent = 'Publicar como insumo';
+    }
+
+    var wrap = byId('apuracaoWrap');
+    if(!c.temPV){
+      wrap.innerHTML =
+        '<div class="card gauge-card"><div class="card-pad"><div class="empty-apuracao">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><br>'+
+          'Este item não tem preço de venda definido — provavelmente é usado só como insumo interno.<br>Defina um preço de venda acima se também quiser vendê-lo ao cliente.'+
+        '</div></div></div>';
+      return;
+    }
+
+    var segs = [
+      {label:'CMV', sub:'custo dos insumos por '+f.rendimento.unidade, value:c.cmvUnitario, pct:c.cmvPct, color:'var(--chart-cmv)'},
+      {label:'DESPESA VARIÁVEL', sub:'definida em Configurações', value:c.despesaVariavel, pct: c.despesaVariavel/c.pv*100, color:'var(--amber)'},
+      {label:'CUSTO FIXO', sub:'definido em Configurações', value:c.custoFixo, pct: c.custoFixo/c.pv*100, color:'var(--chart-fixo)'},
+      {label:'LUCRO', sub:'resultado final', value:c.lucro, pct:c.lucroPct, color: c.lucro>=0 ? 'var(--green)' : 'var(--red)'}
+    ];
+    var display = segs.map(function(s){ return Math.max(s.pct, 5); });
+    var total = display.reduce(function(a,b){return a+b;},0) || 1;
+    var barHtml = segs.map(function(s,i){ return '<span style="height:'+(display[i]/total*100)+'%;background:'+s.color+'"></span>'; }).join('');
+    var rowsHtml = segs.map(function(s,i){
+      return (
+        '<div class="gauge-row" style="flex-basis:'+(display[i]/total*100)+'%">'+
+          '<span class="gauge-dot" style="background:'+s.color+'"></span>'+
+          '<div class="gauge-text">'+
+            '<div class="gauge-left">'+
+              '<div class="gauge-pctline"><span class="gauge-pct" style="color:'+s.color+'">'+pctStr(s.pct)+'</span><span class="gauge-label" style="color:'+s.color+'">'+s.label+'</span></div>'+
+              '<div class="gauge-sub">'+esc(s.sub)+'</div>'+
+            '</div>'+
+            '<div class="gauge-value" style="color:'+s.color+'">'+brl(s.value)+'</div>'+
+          '</div>'+
+        '</div>'
+      );
+    }).join('');
+
+    wrap.innerHTML =
+      '<div class="card gauge-card"><div class="card-pad">'+
+        '<h3 class="section-title">Composição do preço de venda</h3>'+
+        '<p class="section-sub">Como cada real de '+brl(c.pv)+' se distribui.</p>'+
+        '<div class="gauge"><div class="gauge-bar">'+barHtml+'</div><div class="gauge-rows">'+rowsHtml+'</div></div>'+
+      '</div></div>'+
+      '<div class="apuracao">'+
+        '<div class="card"><div class="card-pad">'+
+          '<h3 class="section-title">Apuração de preço</h3>'+
+          '<p class="section-sub">Custo Fixo e Despesa Variável vêm de <button class="link-cfg" id="openConfigFromFicha">Configurações</button>.</p>'+
+          '<div class="calc-row start"><span class="label">Preço de venda</span><span class="value mono">'+brl(c.pv)+'</span></div>'+
+          '<div class="calc-row"><span class="label">(−) CMV<small>Custo dos insumos, por '+esc(f.rendimento.unidade)+'</small></span><span class="value mono">'+pctBrl(c.cmvPct,c.cmvUnitario)+'</span></div>'+
+          '<div class="calc-row"><span class="label">(−) Despesa variável<small>definida em Configurações</small></span><span class="value mono">'+pctBrl(CONFIG.despesaVariavelPercent,c.despesaVariavel)+'</span></div>'+
+          '<div class="calc-row subtotal"><span class="label">Margem de contribuição<small>Preço − CMV − Despesa variável</small></span><span class="value mono">'+pctBrl(c.mcPct,c.mc)+'</span></div>'+
+          '<div class="calc-row"><span class="label">(−) Custo fixo<small>definido em Configurações</small></span><span class="value mono">'+pctBrl(CONFIG.custoFixoPercent,c.custoFixo)+'</span></div>'+
+          '<div class="calc-row total"><span class="label">(=) Lucro</span><span class="value mono" style="color:'+(c.lucro>=0?'var(--green)':'var(--red)')+'">'+pctBrl(c.lucroPct,c.lucro)+'</span></div>'+
+        '</div></div>'+
+        '<div class="card"><div class="card-pad">'+
+          '<h3 class="section-title">Simulador de lucro</h3>'+
+          '<p class="section-sub">Informe o lucro que você quer e veja o preço de venda necessário.</p>'+
+          '<div class="sim-current"><span>Lucro atual</span><strong style="color:'+(c.lucro>=0?'var(--green)':'var(--red)')+'">'+pctBrl(c.lucroPct,c.lucro)+'</strong></div>'+
+          '<div class="segmented" id="simModoSeg">'+
+            '<button type="button" data-modo="reais" class="'+(sim.modo==='reais'?'active':'')+'">Valor (R$)</button>'+
+            '<button type="button" data-modo="percentual" class="'+(sim.modo==='percentual'?'active':'')+'">Percentual (%)</button>'+
+          '</div>'+
+          '<div class="field" style="margin-top:10px;margin-bottom:0;">'+
+            '<label for="simValor">Lucro desejado</label>'+
+            '<input type="number" id="simValor" step="0.01" min="0" value="'+(sim.valor!=null?sim.valor:'')+'" placeholder="'+(sim.modo==='reais'?'Ex: 5,00':'Ex: 40')+'">'+
+          '</div>'+
+          '<div class="sim-result" id="simResult"></div>'+
+          '<button class="btn btn-primary" id="simApplyBtn" style="width:100%;justify-content:center;margin-top:10px;display:none;">Aplicar este preço de venda</button>'+
+        '</div></div>'+
+      '</div>';
+
+    byId('openConfigFromFicha').addEventListener('click', openConfigSheet);
+    document.querySelectorAll('#simModoSeg button').forEach(function(b){
+      b.addEventListener('click', function(){
+        sim.modo = b.dataset.modo;
+        document.querySelectorAll('#simModoSeg button').forEach(function(x){ x.classList.toggle('active', x===b); });
+        byId('simValor').placeholder = sim.modo==='reais' ? 'Ex: 5,00' : 'Ex: 40';
+        updateSimResult(c);
+      });
+    });
+    byId('simValor').addEventListener('input', function(){
+      var v = parseFloat(byId('simValor').value);
+      sim.valor = isNaN(v) ? null : v;
+      updateSimResult(c);
+    });
+    byId('simApplyBtn').addEventListener('click', function(){
+      if(sim.pvAlvo==null) return;
+      f.precoVenda = Math.round(sim.pvAlvo*100)/100;
+      byId('fichaPV').value = f.precoVenda;
+      refreshFichaCalculations(f.id);
+      agendarSalvamento();
+    });
+    updateSimResult(c);
+  }
+
+  function updateSimResult(c){
+    var resultEl = byId('simResult');
+    var applyBtn = byId('simApplyBtn');
+    if(!resultEl) return;
+    if(sim.valor==null || isNaN(sim.valor)){
+      resultEl.innerHTML = '<p class="hint" style="margin-top:10px;">Informe um valor para simular.</p>';
+      applyBtn.style.display = 'none';
+      sim.pvAlvo = null;
+      return;
+    }
+    var denomBase = 1 - CONFIG.despesaVariavelPercent/100 - CONFIG.custoFixoPercent/100;
+    var pvAlvo;
+    if(sim.modo==='reais'){
+      pvAlvo = denomBase>0 ? (sim.valor + c.cmvUnitario)/denomBase : null;
+    } else {
+      var denom2 = denomBase - sim.valor/100;
+      pvAlvo = denom2>0 ? c.cmvUnitario/denom2 : null;
+    }
+    if(pvAlvo==null || !isFinite(pvAlvo) || pvAlvo<=0){
+      resultEl.innerHTML = '<p class="hint" style="color:var(--red);margin-top:10px;">Meta não alcançável — Despesa Variável e Custo Fixo já consomem '+numStr(CONFIG.despesaVariavelPercent+CONFIG.custoFixoPercent,1)+'% do preço de venda.</p>';
+      applyBtn.style.display = 'none';
+      sim.pvAlvo = null;
+      return;
+    }
+    sim.pvAlvo = pvAlvo;
+    var delta = pvAlvo - c.pv;
+    var deltaStr = (delta>=0?'+':'−')+brl(Math.abs(delta));
+    resultEl.innerHTML =
+      '<div class="sim-row"><span>Preço atual</span><span class="mono">'+brl(c.pv)+'</span></div>'+
+      '<div class="sim-row target"><span>Preço alvo</span><span class="mono">'+brl(pvAlvo)+'</span></div>'+
+      '<div class="sim-delta">'+deltaStr+' em relação ao preço atual</div>';
+    applyBtn.style.display = 'flex';
+  }
+
+  function openIngredienteSheet(){
+    byId('ingSearch').value = '';
+    byId('ingQtd').value = '';
+    byId('ingMedida').value = '';
+    byId('ingUnidadeHint').textContent = '';
+    byId('ingPreview').className = 'fc-preview pending';
+    byId('ingPreview').textContent = 'Selecione um insumo da lista';
+    openSheet('scrimIngrediente');
+  }
+  function updateIngPreview(){
+    var ins = findInsumoByNome(byId('ingSearch').value);
+    var preview = byId('ingPreview');
+    if(!ins){
+      byId('ingUnidadeHint').textContent = '';
+      preview.className = 'fc-preview pending';
+      preview.textContent = 'Selecione um insumo da lista';
+      return;
+    }
+    byId('ingUnidadeHint').textContent = 'em '+ins.unidade;
+    var qtd = parseFloat(byId('ingQtd').value)||0;
+    var custo = qtd*precoFinalInsumo(ins);
+    preview.className = 'fc-preview';
+    preview.textContent = 'Custo desta linha: '+brl(custo);
+  }
+  byId('ingSearch').addEventListener('input', updateIngPreview);
+  byId('ingQtd').addEventListener('input', updateIngPreview);
+
+  byId('saveIngredienteBtn').addEventListener('click', function(){
+    var f = findFicha(state.fichaId);
+    if(!f) return;
+    var ins = findInsumoByNome(byId('ingSearch').value);
+    var qtd = parseFloat(byId('ingQtd').value);
+    if(!ins){ byId('ingSearch').focus(); return; }
+    if(isNaN(qtd) || qtd<=0){ byId('ingQtd').focus(); return; }
+    f.ingredientes.push({insumoId:ins.id, quantidade:qtd, medida:byId('ingMedida').value.trim()});
+    closeSheet('scrimIngrediente');
+    renderFichaDetail(f.id);
+    renderFichasList();
+    agendarSalvamento();
+  });
+
+  /* ================= RENDER: PRODUTOS (dashboard) ================= */
+  function renderProdutos(){
+    var vendaveis = fichas.filter(function(f){ return (f.precoVenda||0) > 0; });
+    var calcs = vendaveis.map(function(f){ return {f:f, c:calcFicha(f)}; });
+
+    var stats = byId('produtosStats');
+    var mediaLucro = calcs.length ? calcs.reduce(function(s,x){return s+x.c.lucroPct;},0)/calcs.length : 0;
+    var maisRentavel = calcs.slice().sort(function(a,b){return b.c.lucroPct-a.c.lucroPct;})[0];
+    stats.innerHTML =
+      '<div class="stat-tile"><div class="stat-label">Produtos vendáveis</div><div class="stat-value">'+calcs.length+'</div></div>'+
+      '<div class="stat-tile"><div class="stat-label">Lucro médio</div><div class="stat-value">'+pctStr(mediaLucro)+'</div></div>'+
+      '<div class="stat-tile"><div class="stat-label">Mais rentável</div><div class="stat-value small">'+(maisRentavel?esc(maisRentavel.f.nome):'—')+'</div></div>';
+
+    var listBody = byId('produtosBody');
+    var q = normalizeText(filters.produtos);
+    var lista = q ? calcs.filter(function(x){ return normalizeText(x.f.nome).indexOf(q)!==-1; }) : calcs;
+
+    listBody.innerHTML = lista.map(function(x){
+      var f=x.f, c=x.c, tier=lucroTier(c.lucroPct);
+      return (
+        '<tr class="clickable" data-id="'+f.id+'">'+
+          '<td data-label="Produto" class="cell-title"><div class="row-name">'+esc(f.nome)+'</div></td>'+
+          '<td data-label="Preço de venda" class="num mono">'+brl(f.precoVenda)+'</td>'+
+          '<td data-label="CMV" class="num mono">'+pctBrl(c.cmvPct,c.cmvUnitario)+'</td>'+
+          '<td data-label="Margem de contribuição" class="num mono">'+pctBrl(c.mcPct,c.mc)+'</td>'+
+          '<td data-label="Lucro" class="num"><span class="badge badge-'+tier+'">'+pctBrl(c.lucroPct,c.lucro)+'</span></td>'+
+        '</tr>'
+      );
+    }).join('') || '<tr><td colspan="5"><div class="empty">'+(q?'Nenhum produto encontrado para "'+esc(filters.produtos)+'".':'Nenhum produto vendável para exibir.')+'</div></td></tr>';
+
+    listBody.querySelectorAll('tr[data-id]').forEach(function(tr){ tr.addEventListener('click', function(){ navigate('fichaDetail', {id:tr.dataset.id}); }); });
+  }
+
+  /* ================= CONFIGURAÇÕES ================= */
+  byId('openConfigBtn').addEventListener('click', openConfigSheet);
+  function openConfigSheet(){
+    byId('cfgFixo').value = CONFIG.custoFixoPercent;
+    byId('cfgVar').value = CONFIG.despesaVariavelPercent;
+    openSheet('scrimConfig');
+  }
+  byId('saveConfigBtn').addEventListener('click', function(){
+    var fixo = parseFloat(byId('cfgFixo').value);
+    var vari = parseFloat(byId('cfgVar').value);
+    if(!isNaN(fixo) && fixo>=0) CONFIG.custoFixoPercent = fixo;
+    if(!isNaN(vari) && vari>=0) CONFIG.despesaVariavelPercent = vari;
+    closeSheet('scrimConfig');
+    if(state.view==='fichaDetail') refreshFichaCalculations(state.fichaId);
+    if(state.view==='fichas') renderFichasList();
+    if(state.view==='produtos') renderProdutos();
+    agendarSalvamento();
+  });
+
+  /* ================= INIT ================= */
+  carregarDados();
+})();
+</script>
+</body>
+</html>
